@@ -2,26 +2,24 @@ import { useEffect, useState } from 'react'
 import { useObra } from '@/contexts/ObraContext'
 import { supabase } from '@/lib/supabase'
 import { propagarFase } from '@/lib/propagation'
-import { List, LayoutGrid, Plus, Loader2, Play, CheckCheck } from 'lucide-react'
-import FaseRow from '@/components/FaseRow'
+import { Plus, Loader2, ChevronDown, ChevronUp, Pencil, Play, CheckCheck, Layers } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
-import Badge from '@/components/ui/Badge'
-import { cn, formatCurrency, getStatusColor, getStatusLabel } from '@/lib/utils'
+import { cn, formatCurrency, formatPercent, getStatusColor, getStatusLabel } from '@/lib/utils'
 
-const STATUS_KANBAN = ['planejamento', 'em_andamento', 'pausada', 'concluida']
+const STATUS_TABS = ['todas', 'planejamento', 'em_andamento', 'concluida', 'pausada']
+const STATUS_LABEL = { todas: 'Todas', planejamento: 'Planejamento', em_andamento: 'Em Andamento', concluida: 'Concluídas', pausada: 'Pausadas' }
 
 export default function FasesPage() {
   const { obraAtiva } = useObra()
-  const [fases, setFases] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [view, setView] = useState('lista')
+  const [fases, setFases]       = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [filtro, setFiltro]     = useState('todas')
   const [expandido, setExpandido] = useState(null)
   const [editModal, setEditModal] = useState(null)
-  const [addModal, setAddModal] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [addModal, setAddModal]  = useState(false)
+  const [saving, setSaving]     = useState(false)
 
   useEffect(() => { if (obraAtiva) load() }, [obraAtiva?.id])
 
@@ -32,16 +30,10 @@ export default function FasesPage() {
     setLoading(false)
   }
 
-  async function atualizarProgresso(faseId, pct) {
-    await supabase.from('fases').update({ percentual_concluido: pct }).eq('id', faseId)
-    await propagarFase({ obraId: obraAtiva.id, faseId })
-    await load()
-  }
-
   async function iniciarFase(faseId) {
     await supabase.from('fases').update({
       status: 'em_andamento',
-      data_inicio_real: new Date().toISOString().split('T')[0]
+      data_inicio_real: new Date().toISOString().split('T')[0],
     }).eq('id', faseId)
     await load()
   }
@@ -50,7 +42,7 @@ export default function FasesPage() {
     await supabase.from('fases').update({
       status: 'concluida',
       percentual_concluido: 100,
-      data_fim_real: new Date().toISOString().split('T')[0]
+      data_fim_real: new Date().toISOString().split('T')[0],
     }).eq('id', faseId)
     await propagarFase({ obraId: obraAtiva.id, faseId })
     await load()
@@ -60,8 +52,10 @@ export default function FasesPage() {
     setSaving(true)
     if (id) {
       await supabase.from('fases').update(dados).eq('id', id)
+      await propagarFase({ obraId: obraAtiva.id, faseId: id })
     } else {
-      await supabase.from('fases').insert({ ...dados, obra_id: obraAtiva.id })
+      const proximoNumero = (fases[fases.length - 1]?.numero || 0) + 1
+      await supabase.from('fases').insert({ ...dados, obra_id: obraAtiva.id, numero: proximoNumero })
     }
     setSaving(false)
     setEditModal(null)
@@ -69,204 +63,300 @@ export default function FasesPage() {
     await load()
   }
 
-  if (!obraAtiva) return <p className="text-brand-muted text-center py-20">Selecione uma obra.</p>
-  if (loading) return <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-brand-accent" /></div>
+  const counts = {
+    todas: fases.length,
+    planejamento: fases.filter(f => f.status === 'planejamento').length,
+    em_andamento: fases.filter(f => f.status === 'em_andamento').length,
+    concluida: fases.filter(f => f.status === 'concluida').length,
+    pausada: fases.filter(f => f.status === 'pausada').length,
+  }
+
+  const fasesFiltradas = filtro === 'todas' ? fases : fases.filter(f => f.status === filtro)
+
+  if (!obraAtiva) return (
+    <div className="text-center py-20 text-brand-muted">
+      <Layers size={40} className="mx-auto mb-3 opacity-40" />
+      <p>Selecione uma obra para ver as fases.</p>
+    </div>
+  )
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold text-brand-dark">Fases da Obra</h1>
-          <p className="text-sm text-brand-muted">{fases.length} fases cadastradas</p>
+          <p className="text-sm text-brand-muted">{fases.length} fase{fases.length !== 1 ? 's' : ''} cadastradas</p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Toggle view */}
-          <div className="flex bg-brand-bg rounded-xl p-1 border border-brand-border">
-            <button onClick={() => setView('lista')} className={cn("p-1.5 rounded-lg", view === 'lista' ? "bg-white shadow-sm" : "text-brand-muted")}>
-              <List size={16} />
-            </button>
-            <button onClick={() => setView('kanban')} className={cn("p-1.5 rounded-lg", view === 'kanban' ? "bg-white shadow-sm" : "text-brand-muted")}>
-              <LayoutGrid size={16} />
-            </button>
-          </div>
-          <Button size="sm" onClick={() => setAddModal(true)}><Plus size={14} /> Nova Fase</Button>
-        </div>
+        <Button onClick={() => setAddModal(true)}>
+          <Plus size={14} /> Nova Fase
+        </Button>
       </div>
 
-      {/* Resumo financeiro */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: 'Total estimado', value: formatCurrency(fases.reduce((s, f) => s + (f.total_estimado || 0), 0)), color: 'text-brand-dark' },
-          { label: 'Total realizado', value: formatCurrency(fases.reduce((s, f) => s + (f.total_realizado || 0), 0)), color: 'text-brand-accent' },
-          { label: 'Fases em andamento', value: fases.filter(f => f.status === 'em_andamento').length, color: 'text-blue-600' },
-          { label: 'Fases concluídas', value: fases.filter(f => f.status === 'concluida').length, color: 'text-green-600' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="card-base p-4">
-            <div className="gradient-bar" />
-            <p className="text-xs text-brand-muted">{label}</p>
-            <p className={cn("text-lg font-display font-bold mt-1", color)}>{value}</p>
-          </div>
+      {/* Tabs de status */}
+      <div className="flex flex-wrap gap-2">
+        {STATUS_TABS.map(s => (
+          <button
+            key={s}
+            onClick={() => setFiltro(s)}
+            className={cn(
+              'px-4 py-2 rounded-full text-sm font-medium transition-colors border',
+              filtro === s
+                ? 'bg-brand-dark text-white border-brand-dark'
+                : 'bg-white text-brand-muted border-brand-border hover:border-brand-dark/30'
+            )}
+          >
+            {STATUS_LABEL[s]} ({counts[s]})
+          </button>
         ))}
       </div>
 
       {/* Lista */}
-      {view === 'lista' && (
-        <div>
-          {fases.map(fase => (
-            <FaseRow
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 size={32} className="animate-spin text-brand-accent" />
+        </div>
+      ) : fasesFiltradas.length === 0 ? (
+        <div className="text-center py-16 text-brand-muted">
+          <Layers size={40} className="mx-auto mb-3 opacity-30" />
+          <p className="font-medium">Nenhuma fase encontrada.</p>
+          <p className="text-sm mt-1">Crie fases manualmente ou use o seed em Configurações.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {fasesFiltradas.map(fase => (
+            <FaseCard
               key={fase.id}
               fase={fase}
-              expanded={expandido === fase.id}
-              onClick={() => setExpandido(expandido === fase.id ? null : fase.id)}
-            >
-              {/* Conteúdo expandido */}
-              <div className="pt-4 space-y-4">
-                {/* Slider de progresso */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-medium text-brand-dark">Progresso físico</label>
-                    <span className="text-xs font-bold text-brand-accent">{Math.round(fase.percentual_concluido || 0)}%</span>
-                  </div>
-                  <input
-                    type="range" min="0" max="100" step="5"
-                    value={fase.percentual_concluido || 0}
-                    onChange={e => atualizarProgresso(fase.id, Number(e.target.value))}
-                    className="w-full accent-brand-accent"
-                  />
-                </div>
-
-                {/* Botões de ação */}
-                <div className="flex gap-2 flex-wrap">
-                  {fase.status !== 'em_andamento' && fase.status !== 'concluida' && (
-                    <Button size="sm" onClick={() => iniciarFase(fase.id)}>
-                      <Play size={12} /> Iniciar fase
-                    </Button>
-                  )}
-                  {fase.status !== 'concluida' && (
-                    <Button size="sm" variant="secondary" onClick={() => concluirFase(fase.id)}>
-                      <CheckCheck size={12} /> Concluir fase
-                    </Button>
-                  )}
-                  <Button size="sm" variant="ghost" onClick={() => setEditModal(fase)}>
-                    Editar
-                  </Button>
-                </div>
-
-                {/* Valores */}
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  {[
-                    { label: 'Estimado', value: formatCurrency(fase.total_estimado) },
-                    { label: 'Realizado', value: formatCurrency(fase.total_realizado) },
-                    { label: 'MO estimada', value: formatCurrency(fase.mao_obra_estimada) },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="bg-brand-bg rounded-xl p-2">
-                      <p className="text-[10px] text-brand-muted">{label}</p>
-                      <p className="text-sm font-bold text-brand-dark">{value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FaseRow>
+              expandido={expandido === fase.id}
+              onToggle={() => setExpandido(expandido === fase.id ? null : fase.id)}
+              onIniciar={() => iniciarFase(fase.id)}
+              onConcluir={() => concluirFase(fase.id)}
+              onEditar={() => setEditModal(fase)}
+            />
           ))}
         </div>
       )}
 
-      {/* Kanban */}
-      {view === 'kanban' && (
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 overflow-x-auto">
-          {STATUS_KANBAN.map(status => {
-            const fasesStatus = fases.filter(f => f.status === status)
-            return (
-              <div key={status} className="bg-brand-bg rounded-xl p-3 min-w-[220px]">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={cn("w-2 h-2 rounded-full",
-                    status === 'planejamento' ? "bg-slate-400" :
-                    status === 'em_andamento' ? "bg-blue-400" :
-                    status === 'concluida'    ? "bg-green-400" : "bg-amber-400"
-                  )} />
-                  <span className="text-xs font-medium text-brand-dark">{getStatusLabel(status)}</span>
-                  <span className="ml-auto text-xs text-brand-muted">{fasesStatus.length}</span>
-                </div>
-                <div className="space-y-2">
-                  {fasesStatus.map(fase => (
-                    <div key={fase.id} className="card-base p-3 cursor-pointer" onClick={() => setEditModal(fase)}>
-                      <div className="gradient-bar" />
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600">{fase.numero}</div>
-                        <span className="text-xs font-medium text-brand-dark truncate">{fase.nome}</span>
-                      </div>
-                      <div className="h-1 bg-brand-border rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-brand-dark to-brand-accent" style={{ width: `${fase.percentual_concluido || 0}%` }} />
-                      </div>
-                      <p className="text-[10px] text-brand-muted mt-1">{formatCurrency(fase.total_estimado)}</p>
-                    </div>
-                  ))}
-                  {fasesStatus.length === 0 && (
-                    <p className="text-xs text-brand-muted text-center py-4">Nenhuma</p>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Modal editar/adicionar fase */}
-      {(editModal || addModal) && (
+      {/* Modal editar */}
+      {editModal && (
         <ModalFase
           fase={editModal}
-          onSave={salvarFase}
-          onClose={() => { setEditModal(null); setAddModal(false) }}
+          onSave={d => salvarFase(d, editModal.id)}
+          onClose={() => setEditModal(null)}
           saving={saving}
-          nextNumero={editModal ? undefined : Math.max(...fases.map(f => f.numero), 0) + 1}
+        />
+      )}
+
+      {/* Modal nova fase */}
+      {addModal && (
+        <ModalFase
+          fase={null}
+          onSave={d => salvarFase(d, null)}
+          onClose={() => setAddModal(false)}
+          saving={saving}
         />
       )}
     </div>
   )
 }
 
-function ModalFase({ fase, onSave, onClose, saving, nextNumero }) {
-  const [form, setForm] = useState({
-    numero: fase?.numero || nextNumero || 1,
-    nome: fase?.nome || '',
-    descricao: fase?.descricao || '',
-    proporcao: fase?.proporcao || '',
-    status: fase?.status || 'planejamento',
-    data_inicio_prevista: fase?.data_inicio_prevista || '',
-    data_fim_prevista: fase?.data_fim_prevista || '',
-    responsavel: fase?.responsavel || '',
-  })
+function FaseCard({ fase, expandido, onToggle, onIniciar, onConcluir, onEditar }) {
+  const pct = fase.percentual_concluido || 0
+  const orcado = fase.total_estimado || 0
+  const realizado = fase.total_realizado || 0
+  const desvio = orcado > 0 ? ((realizado - orcado) / orcado) * 100 : 0
+  const isVariavel = fase.is_variavel
 
   return (
-    <Modal open onClose={onClose} title={fase ? 'Editar Fase' : 'Nova Fase'} size="lg">
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input label="Número" type="number" value={form.numero} onChange={e => setForm(p => ({...p, numero: Number(e.target.value)}))} />
-        <div className="md:col-span-1">
-          <Select label="Status" value={form.status} onChange={e => setForm(p => ({...p, status: e.target.value}))}>
-            <option value="planejamento">Planejamento</option>
-            <option value="em_andamento">Em andamento</option>
-            <option value="pausada">Pausada</option>
-            <option value="concluida">Concluída</option>
-          </Select>
+    <div className="card-base overflow-hidden">
+      <div className="gradient-bar" />
+
+      {/* Linha principal */}
+      <div
+        className="flex items-center gap-4 p-4 cursor-pointer"
+        onClick={onToggle}
+      >
+        {/* Número */}
+        <div className="w-9 h-9 rounded-full bg-brand-dark text-white flex items-center justify-center text-sm font-display font-bold flex-shrink-0">
+          {fase.numero}
         </div>
-        <div className="md:col-span-2">
-          <Input label="Nome da fase *" value={form.nome} onChange={e => setForm(p => ({...p, nome: e.target.value}))} />
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <span className="font-semibold text-brand-dark text-sm">{fase.nome}</span>
+            {isVariavel && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">Variável</span>
+            )}
+            <span className={cn('text-[10px] px-2 py-0.5 rounded-full font-medium', getStatusColor(fase.status))}>
+              {getStatusLabel(fase.status)}
+            </span>
+          </div>
+          {fase.descricao && (
+            <p className="text-xs text-brand-muted truncate">{fase.descricao}</p>
+          )}
+          {/* Barra de progresso */}
+          <div className="mt-2 flex items-center gap-3">
+            <div className="flex-1 h-1.5 bg-brand-bg rounded-full overflow-hidden">
+              <div
+                className={cn('h-full rounded-full transition-all', pct >= 100 ? 'bg-status-green' : pct > 0 ? 'bg-brand-accent' : 'bg-brand-border')}
+                style={{ width: `${Math.min(pct, 100)}%` }}
+              />
+            </div>
+            <span className="text-xs text-brand-muted whitespace-nowrap">{pct.toFixed(0)}% concluído</span>
+          </div>
         </div>
-        <div className="md:col-span-2">
-          <label className="text-xs font-medium text-brand-dark">Descrição</label>
-          <textarea className="mt-1 w-full rounded-xl border border-brand-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/30" rows={3}
-            value={form.descricao} onChange={e => setForm(p => ({...p, descricao: e.target.value}))} />
+
+        {/* Valor / desvio (só se não variável e tem orçado) */}
+        <div className="text-right flex-shrink-0 hidden sm:block">
+          {isVariavel ? (
+            <span className="text-sm font-medium text-brand-muted">Variável</span>
+          ) : orcado > 0 ? (
+            <>
+              <p className={cn('text-sm font-display font-bold', desvio > 0 ? 'text-status-red' : 'text-brand-dark')}>
+                {formatCurrency(orcado)}
+              </p>
+              <p className={cn('text-xs', desvio > 0 ? 'text-status-red' : desvio < 0 ? 'text-status-green' : 'text-brand-muted')}>
+                {desvio !== 0 ? (desvio > 0 ? '+' : '') + formatPercent(desvio) : '—'}
+              </p>
+            </>
+          ) : null}
         </div>
-        <Input label="Proporção do orçamento (%)" type="number" step="0.1" value={form.proporcao}
-          onChange={e => setForm(p => ({...p, proporcao: e.target.value}))} />
-        <Input label="Responsável" value={form.responsavel} onChange={e => setForm(p => ({...p, responsavel: e.target.value}))} />
-        <Input label="Início previsto" type="date" value={form.data_inicio_prevista}
-          onChange={e => setForm(p => ({...p, data_inicio_prevista: e.target.value}))} />
-        <Input label="Fim previsto" type="date" value={form.data_fim_prevista}
-          onChange={e => setForm(p => ({...p, data_fim_prevista: e.target.value}))} />
-        <div className="md:col-span-2 flex justify-end gap-3 pt-2 border-t border-brand-border">
-          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button loading={saving} onClick={() => form.nome && onSave(form, fase?.id)}>Salvar</Button>
+
+        {/* Chevron */}
+        <div className="text-brand-muted flex-shrink-0">
+          {expandido ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </div>
+      </div>
+
+      {/* Painel expandido */}
+      {expandido && (
+        <div className="border-t border-brand-border">
+          {/* Aviso descricao */}
+          {fase.descricao && (
+            <div className="mx-4 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2 text-xs text-amber-800">
+              <span>ℹ</span>
+              <span>{fase.descricao}</span>
+            </div>
+          )}
+
+          {/* Cards de valores */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-4">
+            {[
+              { label: 'Total Estimado',   value: formatCurrency(orcado) },
+              { label: 'Mão de Obra',      value: formatCurrency(fase.mao_obra_estimada || 0) },
+              { label: 'Materiais',        value: formatCurrency(fase.materiais_estimados || 0) },
+              { label: 'Total Realizado',  value: formatCurrency(realizado) },
+              { label: '% Concluído',      value: `${pct.toFixed(0)}%` },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-brand-bg rounded-lg p-3">
+                <p className="text-[10px] text-brand-muted mb-1">{label}</p>
+                <p className="text-sm font-display font-semibold text-brand-dark">{value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Proporção */}
+          {!isVariavel && fase.proporcao && (
+            <p className="px-4 pb-2 text-xs text-brand-muted">
+              Proporção: {fase.proporcao}% do orçamento total
+            </p>
+          )}
+
+          {/* Datas */}
+          {(fase.data_inicio_prevista || fase.data_fim_prevista) && (
+            <div className="px-4 pb-3 flex gap-4 text-xs text-brand-muted">
+              {fase.data_inicio_prevista && <span>Início previsto: {fase.data_inicio_prevista}</span>}
+              {fase.data_fim_prevista && <span>Fim previsto: {fase.data_fim_prevista}</span>}
+              {fase.data_inicio_real && <span>Início real: {fase.data_inicio_real}</span>}
+              {fase.data_fim_real && <span>Fim real: {fase.data_fim_real}</span>}
+            </div>
+          )}
+
+          {/* Ações */}
+          <div className="px-4 pb-4 flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={onEditar}>
+              <Pencil size={13} /> Editar
+            </Button>
+            {fase.status === 'planejamento' && (
+              <Button variant="outline" size="sm" onClick={onIniciar}>
+                <Play size={13} /> Iniciar fase
+              </Button>
+            )}
+            {fase.status === 'em_andamento' && (
+              <Button variant="outline" size="sm" onClick={onConcluir}>
+                <CheckCheck size={13} /> Concluir fase
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ModalFase({ fase, onSave, onClose, saving }) {
+  const [form, setForm] = useState({
+    nome:                fase?.nome                || '',
+    descricao:           fase?.descricao           || '',
+    proporcao:           fase?.proporcao           || '',
+    is_variavel:         fase?.is_variavel         || false,
+    total_estimado:      fase?.total_estimado      || '',
+    mao_obra_estimada:   fase?.mao_obra_estimada   || '',
+    materiais_estimados: fase?.materiais_estimados || '',
+    responsavel:         fase?.responsavel         || '',
+    data_inicio_prevista:fase?.data_inicio_prevista|| '',
+    data_fim_prevista:   fase?.data_fim_prevista   || '',
+    status:              fase?.status              || 'planejamento',
+  })
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  return (
+    <Modal open onClose={onClose} title={fase ? `Editar: ${fase.nome}` : 'Nova Fase'}>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <Input label="Nome da fase *" value={form.nome} onChange={e => set('nome', e.target.value)} />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-xs font-medium text-brand-muted mb-1">Descrição</label>
+            <textarea
+              value={form.descricao}
+              onChange={e => set('descricao', e.target.value)}
+              rows={2}
+              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30 resize-none"
+            />
+          </div>
+          <Input label="Total estimado (R$)" type="number" value={form.total_estimado} onChange={e => set('total_estimado', e.target.value)} />
+          <Input label="Mão de Obra (R$)" type="number" value={form.mao_obra_estimada} onChange={e => set('mao_obra_estimada', e.target.value)} />
+          <Input label="Materiais (R$)" type="number" value={form.materiais_estimados} onChange={e => set('materiais_estimados', e.target.value)} />
+          <Input label="Proporção (%)" type="number" value={form.proporcao} onChange={e => set('proporcao', e.target.value)} placeholder="Ex: 15" />
+          <Input label="Início previsto" type="date" value={form.data_inicio_prevista} onChange={e => set('data_inicio_prevista', e.target.value)} />
+          <Input label="Fim previsto" type="date" value={form.data_fim_prevista} onChange={e => set('data_fim_prevista', e.target.value)} />
+          <Input label="Responsável" value={form.responsavel} onChange={e => set('responsavel', e.target.value)} />
+          <div>
+            <label className="block text-xs font-medium text-brand-muted mb-1">Status</label>
+            <select value={form.status} onChange={e => set('status', e.target.value)}
+              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
+              <option value="planejamento">Planejamento</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="pausada">Pausada</option>
+              <option value="concluida">Concluída</option>
+            </select>
+          </div>
+          <div className="col-span-2 flex items-center gap-2">
+            <input type="checkbox" id="variavel" checked={form.is_variavel} onChange={e => set('is_variavel', e.target.checked)}
+              className="w-4 h-4 accent-brand-accent" />
+            <label htmlFor="variavel" className="text-sm text-brand-dark">Fase variável (custo não predefinido)</label>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-2 border-t border-brand-border">
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button disabled={saving || !form.nome} onClick={() => onSave(form)}>
+            {saving ? <Loader2 size={14} className="animate-spin" /> : null}
+            Salvar
+          </Button>
         </div>
       </div>
     </Modal>
