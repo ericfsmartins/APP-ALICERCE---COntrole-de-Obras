@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(claude mcp:*)",
+      "Bash(find 'C:/Users/Eric Martins/.claude' -name *.json)",
+      "Read(//c/Users/Eric Martins/AppData/Roaming/**)",
+      "Bash(npm list:*)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vite:*)",
+      "Bash(./node_modules/.bin/vite build:*)",
+      "Bash(node node_modules/vite/bin/vite.js build)",
+      "Bash(node node_modules/vite/dist/node/cli.js build)",
+      "Bash(node -e \"require\\(''tailwindcss''\\); console.log\\(''OK''\\)\")",
+      "Bash(node -e \"require\\(''''tailwindcss''''\\); console.log\\(''''tailwind OK''''\\)\")",
+      "Bash(echo EXIT:$?)",
+      "Bash(grep -rn \"from ''''@/components/ui/Select''''\" \"e:/Pessoal/Antigravity/App Alicerce - Controle de Obra/src/pages/DocumentosPage.jsx\")",
+      "Bash(node -e \"const p = require\\(''e:/Pessoal/Antigravity/App Alicerce - Controle de Obra/node_modules/lucide-react/package.json''\\); console.log\\(p.version, p.main || p.module\\)\")",
+      "Bash(timeout 15 ./node_modules/.bin/vite --host)",
+      "Bash(timeout 12 ./node_modules/.bin/vite --host)",
+      "Bash(timeout 10 ./node_modules/.bin/vite --host)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__get_project_url",
+      "mcp__claude_ai_Supabase__get_publishable_keys",
+      "mcp__claude_ai_Supabase__list_tables",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "mcp__claude_ai_Supabase__execute_sql"
+    ]
+  }
+}
