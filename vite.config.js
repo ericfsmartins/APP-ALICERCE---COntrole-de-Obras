@@ -11,13 +11,13 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: [],
+      external: ['canvg', 'html2canvas', 'dompurify'],
     },
     commonjsOptions: {
       transformMixedEsModules: true,
     },
   },
   optimizeDeps: {
-    exclude: ['jspdf', 'jspdf-autotable'],
+    exclude: ['jspdf', 'jspdf-autotable', 'canvg'],
   },
 })
