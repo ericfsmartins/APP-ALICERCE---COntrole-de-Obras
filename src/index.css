@@ -12,7 +12,7 @@
   }
 
   body {
-    @apply bg-brand-bg text-brand-dark font-body antialiased;
+    @apply bg-brand-bg text-brand-dark font-sans antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
