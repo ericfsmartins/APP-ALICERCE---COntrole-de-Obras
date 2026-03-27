@@ -198,7 +198,7 @@ export default function DocumentosPage() {
 
       {/* Modal novo documento */}
       <Modal open={modal} onClose={() => setModal(false)} title="Novo Documento">
-        <div className="space-y-4">
+        <div className="p-5 space-y-3">
           <Input
             label="Nome do documento *"
             value={form.nome}
@@ -253,12 +253,12 @@ export default function DocumentosPage() {
             <textarea
               value={form.descricao}
               onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))}
-              rows={3}
+              rows={2}
               className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30 resize-none"
               placeholder="Detalhes sobre o documento..."
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setModal(false)}>Cancelar</Button>
             <Button onClick={salvar} disabled={saving}>
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
