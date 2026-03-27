@@ -298,7 +298,7 @@ function ModalDespesa({ despesa, fases, momentos, insumos, onSave, onClose, savi
 
   return (
     <Modal open onClose={onClose} title={despesa ? 'Editar Despesa' : 'Nova Despesa'} size="xl">
-      <div className="p-6 space-y-4">
+      <div className="p-4 space-y-3">
 
         {/* Row 1: Descrição e Tipo e Valor */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -383,7 +383,7 @@ function ModalDespesa({ despesa, fases, momentos, insumos, onSave, onClose, savi
 
         <div>
           <label className="block text-xs font-medium text-brand-muted mb-1">Observações</label>
-          <textarea className="w-full rounded-xl border border-brand-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/30 resize-none" rows={2}
+          <textarea className="w-full rounded-xl border border-brand-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/30 resize-none" rows={1}
             value={form.observacoes} onChange={e => setForm(p=>({...p,observacoes:e.target.value}))}
             placeholder="Nota fiscal, detalhes..." />
         </div>
