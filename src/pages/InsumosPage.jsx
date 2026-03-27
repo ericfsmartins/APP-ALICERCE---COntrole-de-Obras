@@ -8,14 +8,15 @@ import Input from '@/components/ui/Input'
 import { formatCurrency, formatPercent, cn } from '@/lib/utils'
 import { INSUMOS_PADRAO } from '@/lib/seedData'
 
-const STATUS_INSUMO  = ['nao_cotado','cotado','aprovado','comprado','entregue']
-const STATUS_LABELS  = { nao_cotado:'Não cotado', cotado:'Cotado', aprovado:'Aprovado', comprado:'Comprado', entregue:'Entregue' }
+const STATUS_INSUMO  = ['nao_cotado','cotado','aprovado','comprado','entregue','concluido']
+const STATUS_LABELS  = { nao_cotado:'Não cotado', cotado:'Cotado', aprovado:'Aprovado', comprado:'Comprado', entregue:'Entregue', concluido:'Concluído' }
 const STATUS_COLORS  = {
   nao_cotado: 'bg-slate-100 text-slate-600',
   cotado:     'bg-blue-100 text-blue-700',
   aprovado:   'bg-amber-100 text-amber-700',
   comprado:   'bg-purple-100 text-purple-700',
   entregue:   'bg-green-100 text-green-700',
+  concluido:  'bg-emerald-100 text-emerald-700',
 }
 const CLASSE_COLORS = { A: 'bg-red-100 text-red-700', B: 'bg-amber-100 text-amber-700', C: 'bg-blue-100 text-blue-700' }
 
@@ -122,7 +123,13 @@ export default function InsumosPage() {
   async function salvarInsumo(dados, id) {
     setSaving(true)
     const fase = fases.find(f => f.id === dados.fase_id)
-    const payload = { ...dados, fase_nome: fase?.nome || '' }
+    const payload = {
+      ...dados,
+      fase_nome:       fase?.nome || '',
+      valor_orcado:    parseFloat(String(dados.valor_orcado   || 0).replace(',', '.')) || 0,
+      valor_realizado: parseFloat(String(dados.valor_realizado|| 0).replace(',', '.')) || 0,
+      peso_percentual: parseFloat(String(dados.peso_percentual|| 0).replace(',', '.')) || 0,
+    }
     if (id) {
       await supabase.from('insumos').update(payload).eq('id', id)
     } else {
@@ -430,48 +437,73 @@ export default function InsumosPage() {
 
 function ModalInsumo({ insumo, fases, onSave, onClose, saving }) {
   const [form, setForm] = useState({
-    nome:           insumo?.nome           || '',
-    categoria:      insumo?.categoria      || '',
-    peso_percentual:insumo?.peso_percentual|| '',
-    valor_orcado:   insumo?.valor_orcado   || '',
-    unidade:        insumo?.unidade        || '',
-    quantidade:     insumo?.quantidade     || '',
-    preco_unitario: insumo?.preco_unitario || '',
-    fornecedor:     insumo?.fornecedor     || '',
-    fase_id:        insumo?.fase_id        || '',
-    status:         insumo?.status         || 'nao_cotado',
-    classe:         insumo?.classe         || 'C',
-    ranking:        insumo?.ranking        || '',
+    nome:            insumo?.nome            || '',
+    categoria:       insumo?.categoria       || '',
+    peso_percentual: insumo?.peso_percentual || '',
+    valor_orcado:    insumo?.valor_orcado    || '',
+    valor_realizado: insumo?.valor_realizado || '',
+    unidade:         insumo?.unidade         || '',
+    quantidade:      insumo?.quantidade      || '',
+    preco_unitario:  insumo?.preco_unitario  || '',
+    fornecedor:      insumo?.fornecedor      || '',
+    fase_id:         insumo?.fase_id         || '',
+    status:          insumo?.status          || 'nao_cotado',
+    classe:          insumo?.classe          || 'C',
+    ranking:         insumo?.ranking         || '',
   })
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
   return (
     <Modal open onClose={onClose} title={insumo ? 'Editar Insumo' : 'Novo Insumo'}>
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <Input label="Nome *" value={form.nome} onChange={e => set('nome', e.target.value)} />
-          </div>
-          <Input label="Categoria" value={form.categoria} onChange={e => set('categoria', e.target.value)} />
+      <div className="p-5 space-y-3">
+        <Input label="Nome *" value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Cimento Portland" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input label="Categoria" value={form.categoria} onChange={e => set('categoria', e.target.value)} placeholder="Ex: Estrutura" />
           <div>
             <label className="block text-xs font-medium text-brand-muted mb-1">Classe ABC</label>
             <select value={form.classe} onChange={e => set('classe', e.target.value)}
-              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
+              className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
               <option value="A">A — Alta relevância</option>
               <option value="B">B — Média relevância</option>
               <option value="C">C — Baixa relevância</option>
             </select>
           </div>
-          <Input label="Peso % (ex: 12.38)" type="number" value={form.peso_percentual} onChange={e => set('peso_percentual', e.target.value)} />
-          <Input label="Valor orçado (R$)" type="number" value={form.valor_orcado} onChange={e => set('valor_orcado', e.target.value)} />
-          <Input label="Unidade" value={form.unidade} onChange={e => set('unidade', e.target.value)} placeholder="m², kg, un..." />
-          <Input label="Quantidade" type="number" value={form.quantidade} onChange={e => set('quantidade', e.target.value)} />
-          <Input label="Preço unitário" type="number" value={form.preco_unitario} onChange={e => set('preco_unitario', e.target.value)} />
-          <Input label="Fornecedor" value={form.fornecedor} onChange={e => set('fornecedor', e.target.value)} />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input label="Valor orçado (R$)" type="text" value={form.valor_orcado} onChange={e => set('valor_orcado', e.target.value)} placeholder="0,00" />
           <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Fase</label>
+            <label className="block text-xs font-medium text-brand-muted mb-1">Valor realizado (R$)</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={form.valor_realizado}
+                onChange={e => set('valor_realizado', e.target.value)}
+                placeholder="0,00"
+                className="h-9 w-full rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
+              />
+            </div>
+            <p className="text-[10px] text-brand-muted mt-0.5">Valor efetivamente gasto neste insumo</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Input label="Unidade" value={form.unidade} onChange={e => set('unidade', e.target.value)} placeholder="m², kg, un..." />
+          <Input label="Quantidade" type="text" value={form.quantidade} onChange={e => set('quantidade', e.target.value)} />
+          <Input label="Preço unitário" type="text" value={form.preco_unitario} onChange={e => set('preco_unitario', e.target.value)} />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input label="Fornecedor" value={form.fornecedor} onChange={e => set('fornecedor', e.target.value)} />
+          <Input label="Peso % no orçamento" type="text" value={form.peso_percentual} onChange={e => set('peso_percentual', e.target.value)} placeholder="Ex: 12.38" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-brand-muted mb-1">Fase vinculada</label>
             <select value={form.fase_id} onChange={e => set('fase_id', e.target.value)}
-              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
+              className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
               <option value="">Nenhuma</option>
               {fases.map(f => <option key={f.id} value={f.id}>{f.numero}. {f.nome.slice(0,30)}</option>)}
             </select>
@@ -479,16 +511,17 @@ function ModalInsumo({ insumo, fases, onSave, onClose, saving }) {
           <div>
             <label className="block text-xs font-medium text-brand-muted mb-1">Status</label>
             <select value={form.status} onChange={e => set('status', e.target.value)}
-              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
+              className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
               {STATUS_INSUMO.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
             </select>
           </div>
         </div>
-        <div className="flex justify-end gap-2 pt-2 border-t border-brand-border">
+
+        <div className="flex justify-end gap-2 pt-3 border-t border-brand-border">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button disabled={saving || !form.nome} onClick={() => onSave(form, insumo?.id)}>
             {saving ? <Loader2 size={14} className="animate-spin" /> : null}
-            Salvar
+            Salvar insumo
           </Button>
         </div>
       </div>
