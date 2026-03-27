@@ -32,6 +32,7 @@ export default function ConfiguracoesPage() {
   const [aba, setAba]         = useState('obra')
   const [saving, setSaving]   = useState(false)
   const [saved, setSaved]     = useState(false)
+  const [erroSave, setErroSave] = useState('')
   const [usuarios, setUsuarios] = useState([])
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [form, setForm]       = useState({})
@@ -78,17 +79,27 @@ export default function ConfiguracoesPage() {
   async function salvarObra() {
     if (!obraAtiva) return
     setSaving(true)
-    const { orcamento_total: _, ...formSemOrcamento } = form
+    setErroSave('')
     const payload = {
-      ...formSemOrcamento,
-      area_total:   parseFloat(form.area_total)  || null,
-      custo_por_m2: parseFloat(form.custo_por_m2) || null,
+      nome:                 form.nome,
+      endereco:             form.endereco || null,
+      responsavel_tecnico:  form.responsavel_tecnico || null,
+      status:               form.status,
+      area_total:           parseFloat(form.area_total)  || null,
+      custo_por_m2:         parseFloat(form.custo_por_m2) || null,
+      data_inicio:          form.data_inicio          || null,
+      data_fim_prevista:    form.data_fim_prevista    || null,
       percentual_mao_obra:  parseFloat(form.percentual_mao_obra)  || 29.09,
       percentual_materiais: parseFloat(form.percentual_materiais) || 70.91,
     }
     const { error } = await atualizarObra(obraAtiva.id, payload)
     setSaving(false)
-    if (!error) { setSaved(true); setTimeout(() => setSaved(false), 2500) }
+    if (error) {
+      setErroSave('Erro ao salvar: ' + error.message)
+    } else {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    }
   }
 
   async function salvarPerfil() {
@@ -220,7 +231,7 @@ export default function ConfiguracoesPage() {
               <option value="concluida">Concluída</option>
             </select>
           </div>
-          <SaveButton saving={saving} saved={saved} onClick={salvarObra} />
+          <SaveButton saving={saving} saved={saved} onClick={salvarObra} erro={erroSave} />
         </div>
       )}
 
@@ -299,7 +310,7 @@ export default function ConfiguracoesPage() {
               Padrão SINAPI: 29,09% MO / 70,91% Materiais.
               Total deve somar 100% ({(parseFloat(form.percentual_mao_obra) + parseFloat(form.percentual_materiais)).toFixed(2)}%).
             </p>
-            <SaveButton saving={saving} saved={saved} onClick={salvarObra} />
+            <SaveButton saving={saving} saved={saved} onClick={salvarObra} erro={erroSave} />
           </div>
         </div>
       )}
@@ -446,18 +457,25 @@ export default function ConfiguracoesPage() {
   )
 }
 
-function SaveButton({ saving, saved, onClick }) {
+function SaveButton({ saving, saved, onClick, erro }) {
   return (
-    <div className="flex justify-end pt-2">
-      <Button onClick={onClick} disabled={saving}>
-        {saving ? (
-          <><Loader2 size={14} className="animate-spin" /> Salvando...</>
-        ) : saved ? (
-          <><Check size={14} /> Salvo!</>
-        ) : (
-          <><Save size={14} /> Salvar</>
-        )}
-      </Button>
+    <div className="pt-2 space-y-2">
+      {erro && (
+        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {erro}
+        </div>
+      )}
+      <div className="flex justify-end">
+        <Button onClick={onClick} disabled={saving}>
+          {saving ? (
+            <><Loader2 size={14} className="animate-spin" /> Salvando...</>
+          ) : saved ? (
+            <><Check size={14} /> Salvo!</>
+          ) : (
+            <><Save size={14} /> Salvar</>
+          )}
+        </Button>
+      </div>
     </div>
   )
 }
