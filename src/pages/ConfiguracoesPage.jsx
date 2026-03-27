@@ -78,11 +78,11 @@ export default function ConfiguracoesPage() {
   async function salvarObra() {
     if (!obraAtiva) return
     setSaving(true)
+    const { orcamento_total: _, ...formSemOrcamento } = form
     const payload = {
-      ...form,
+      ...formSemOrcamento,
       area_total:   parseFloat(form.area_total)  || null,
       custo_por_m2: parseFloat(form.custo_por_m2) || null,
-      orcamento_total: orcamentoCalculado || obraAtiva.orcamento_total,
       percentual_mao_obra:  parseFloat(form.percentual_mao_obra)  || 29.09,
       percentual_materiais: parseFloat(form.percentual_materiais) || 70.91,
     }

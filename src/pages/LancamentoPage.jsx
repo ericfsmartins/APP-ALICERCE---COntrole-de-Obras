@@ -23,6 +23,7 @@ export default function LancamentoPage() {
   const [insumos, setInsumos]   = useState([])
   const [saving, setSaving]     = useState(false)
   const [success, setSuccess]   = useState(false)
+  const [erro, setErro]         = useState('')
   const [form, setForm]         = useState(defaultForm())
 
   function defaultForm() {
@@ -42,7 +43,7 @@ export default function LancamentoPage() {
     Promise.all([
       supabase.from('fases').select('id,nome,numero').eq('obra_id', obraAtiva.id).order('numero'),
       supabase.from('momentos').select('id,nome,numero').eq('obra_id', obraAtiva.id).order('numero'),
-      supabase.from('insumos').select('id,nome,fase_id,momento_id,fase_nome,momento_nome,categoria').eq('obra_id', obraAtiva.id).order('ranking'),
+      supabase.from('insumos').select('id,nome,fase_id,momento_id,categoria').eq('obra_id', obraAtiva.id).order('ranking'),
     ]).then(([f, m, i]) => {
       setFases(f.data || [])
       setMomentos(m.data || [])
@@ -72,6 +73,7 @@ export default function LancamentoPage() {
     e?.preventDefault()
     if (!form.descricao || !form.valor) return
     setSaving(true)
+    setErro('')
 
     const faseSel  = fases.find(f => f.id === form.fase_id)
     const momSel   = momentos.find(m => m.id === form.momento_id)
@@ -95,7 +97,9 @@ export default function LancamentoPage() {
       observacoes:      form.observacoes || null,
     })
 
-    if (!error) {
+    if (error) {
+      setErro(`Erro ao salvar: ${error.message}`)
+    } else {
       // Propagação: via insumo (se tiver) ou direta
       if (form.insumo_id) {
         await propagarDespesaViaInsumo({ obraId: obraAtiva.id, insumoId: form.insumo_id })
@@ -172,7 +176,7 @@ export default function LancamentoPage() {
             </select>
             {insumoSelecionado && (
               <p className="mt-1 text-[11px] text-brand-accent">
-                Auto-vinculado: {insumoSelecionado.fase_nome || '—'} · M{momentos.find(m => m.id === insumoSelecionado.momento_id)?.numero ?? '—'}
+                Auto-vinculado: {fases.find(f => f.id === insumoSelecionado.fase_id)?.nome || '—'} · M{momentos.find(m => m.id === insumoSelecionado.momento_id)?.numero ?? '—'}
               </p>
             )}
           </div>
@@ -269,6 +273,11 @@ export default function LancamentoPage() {
             <div className="flex items-center gap-2 text-status-green text-sm bg-green-50 rounded-xl p-3">
               <CheckCircle2 size={16} />
               Despesa lançada! Fases e Momentos atualizados automaticamente.
+            </div>
+          )}
+          {erro && (
+            <div className="text-sm bg-red-50 text-red-600 border border-red-200 rounded-xl p-3">
+              {erro}
             </div>
           )}
         </form>
