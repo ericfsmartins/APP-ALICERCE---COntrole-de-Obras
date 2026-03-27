@@ -11,9 +11,9 @@ export default {
         brand: {
           dark:   '#0F2044',
           accent: '#D4A84B',
-          border: '#DDE3EE',
+          border: '#E8E4DB', // slightly warmer border to match
           muted:  '#7A8BA6',
-          bg:     '#F4F7FB',
+          bg:     '#FDFBF7', // premium warm off-white (Base44 style)
         },
         status: {
           green:  '#22C55E',
@@ -22,8 +22,8 @@ export default {
         }
       },
       fontFamily: {
-        display: ['Syne', 'sans-serif'],
-        body:    ['IBM Plex Sans', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        display: ['"Outfit"', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',

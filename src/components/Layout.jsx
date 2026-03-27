@@ -60,7 +60,7 @@ export default function Layout() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed top-0 left-0 h-full w-60 z-40 flex flex-col bg-brand-dark text-white transition-transform duration-300",
+        "fixed top-0 left-0 h-full w-60 z-40 flex flex-col bg-gradient-to-b from-brand-dark to-[#0a152d] text-white transition-transform duration-300 shadow-2xl lg:shadow-none",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
         "lg:relative lg:translate-x-0"
       )}>
@@ -84,10 +84,10 @@ export default function Layout() {
               to={to}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) => cn(
-                "flex items-center gap-3 px-5 py-2.5 text-sm transition-colors",
+                "flex items-center gap-3 px-5 py-3 text-sm transition-all duration-300",
                 isActive
-                  ? "bg-brand-accent/20 text-brand-accent font-medium border-r-2 border-brand-accent"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
+                  ? "bg-brand-accent/15 text-brand-accent font-medium border-l-4 border-brand-accent shadow-[inset_4px_0_0_0_theme(colors.brand.accent)]"
+                  : "text-white/60 hover:text-white hover:bg-white/5 border-l-4 border-transparent"
               )}
             >
               <Icon size={16} />

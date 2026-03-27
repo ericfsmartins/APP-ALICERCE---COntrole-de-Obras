@@ -196,58 +196,67 @@ export default function DocumentosPage() {
         </div>
       )}
 
-      {/* Modal novo documento */}
-      <Modal open={modal} onClose={() => setModal(false)} title="Novo Documento">
-        <div className="p-5 space-y-3">
-          <Input
-            label="Nome do documento *"
-            value={form.nome}
-            onChange={e => setForm(p => ({ ...p, nome: e.target.value }))}
-            placeholder="Ex: Projeto Arquitetônico Rev.3"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+      <Modal open={modal} onClose={() => setModal(false)} title="Novo Documento" size="xl">
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-6">
+              <Input
+                label="Nome do documento *"
+                value={form.nome}
+                onChange={e => setForm(p => ({ ...p, nome: e.target.value }))}
+                placeholder="Ex: Projeto Arquitetônico Rev.3"
+              />
+            </div>
+            <div className="md:col-span-3">
               <label className="block text-xs font-medium text-brand-muted mb-1">Tipo</label>
               <select
                 value={form.tipo}
                 onChange={e => setForm(p => ({ ...p, tipo: e.target.value }))}
-                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
               >
                 {TIPOS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-brand-muted mb-1">Fase</label>
+            <div className="md:col-span-3">
+              <label className="block text-xs font-medium text-brand-muted mb-1">Fase vinculada</label>
               <select
                 value={form.fase_id}
                 onChange={e => setForm(p => ({ ...p, fase_id: e.target.value }))}
-                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
               >
-                <option value="">— sem fase —</option>
+                <option value="">— Nenhuma —</option>
                 {fases.map(f => <option key={f.id} value={f.id}>{f.numero}. {f.nome}</option>)}
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Data do documento"
-              type="date"
-              value={form.data_documento}
-              onChange={e => setForm(p => ({ ...p, data_documento: e.target.value }))}
-            />
-            <Input
-              label="Validade (alvarás, ARTs...)"
-              type="date"
-              value={form.validade}
-              onChange={e => setForm(p => ({ ...p, validade: e.target.value }))}
-            />
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-3">
+              <Input
+                label="Data do documento"
+                type="date"
+                value={form.data_documento}
+                onChange={e => setForm(p => ({ ...p, data_documento: e.target.value }))}
+              />
+            </div>
+            <div className="md:col-span-3">
+              <Input
+                label="Validade (Ex: Alvarás)"
+                type="date"
+                value={form.validade}
+                onChange={e => setForm(p => ({ ...p, validade: e.target.value }))}
+              />
+            </div>
+            <div className="md:col-span-6">
+              <Input
+                label="URL do arquivo (link nuvem)"
+                value={form.arquivo_url}
+                onChange={e => setForm(p => ({ ...p, arquivo_url: e.target.value }))}
+                placeholder="https://drive.google.com/..."
+              />
+            </div>
           </div>
-          <Input
-            label="URL do arquivo (link externo)"
-            value={form.arquivo_url}
-            onChange={e => setForm(p => ({ ...p, arquivo_url: e.target.value }))}
-            placeholder="https://drive.google.com/..."
-          />
+
           <div>
             <label className="block text-xs font-medium text-brand-muted mb-1">Descrição</label>
             <textarea
@@ -258,7 +267,8 @@ export default function DocumentosPage() {
               placeholder="Detalhes sobre o documento..."
             />
           </div>
-          <div className="flex justify-end gap-2 pt-1">
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-brand-border">
             <Button variant="outline" onClick={() => setModal(false)}>Cancelar</Button>
             <Button onClick={salvar} disabled={saving}>
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}

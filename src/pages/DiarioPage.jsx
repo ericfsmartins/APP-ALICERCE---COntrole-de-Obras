@@ -228,15 +228,20 @@ function ModalDiario({ fases, momentos, onSave, onClose, saving }) {
   const [fotos, setFotos] = useState([])
 
   return (
-    <Modal open onClose={onClose} title="Nova entrada no Diário" size="lg">
+    <Modal open onClose={onClose} title="Nova entrada no Diário" size="xl">
       <div className="p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        {/* Row 1 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Input label="Data" type="date" value={form.data} onChange={e => setForm(p=>({...p,data:e.target.value}))} />
           <Select label="Clima" value={form.clima} onChange={e => setForm(p=>({...p,clima:e.target.value}))}>
             {Object.entries(CLIMA_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
           </Select>
           <Input label="Funcionários presentes" type="number" value={form.funcionarios_presentes} onChange={e => setForm(p=>({...p,funcionarios_presentes:e.target.value}))} />
           <Input label="Progresso do dia (%)" type="number" min="0" max="100" value={form.progresso_percentual} onChange={e => setForm(p=>({...p,progresso_percentual:e.target.value}))} />
+        </div>
+
+        {/* Row 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select label="Fase" value={form.fase_id} onChange={e => setForm(p=>({...p,fase_id:e.target.value}))}>
             <option value="">Nenhuma</option>
             {fases.map(f => <option key={f.id} value={f.id}>{f.numero}. {f.nome.slice(0,30)}</option>)}
@@ -245,6 +250,7 @@ function ModalDiario({ fases, momentos, onSave, onClose, saving }) {
             <option value="">Nenhum</option>
             {momentos.map(m => <option key={m.id} value={m.id}>M{m.numero}</option>)}
           </Select>
+          <Input label="Responsável" value={form.responsavel} onChange={e => setForm(p=>({...p,responsavel:e.target.value}))} />
         </div>
         <div>
           <label className="text-xs font-medium text-brand-dark">Atividades realizadas *</label>
@@ -256,14 +262,15 @@ function ModalDiario({ fases, momentos, onSave, onClose, saving }) {
           <textarea className="mt-1 w-full rounded-xl border border-brand-border px-3 py-2 text-sm focus:outline-none"
             rows={2} value={form.ocorrencias} onChange={e => setForm(p=>({...p,ocorrencias:e.target.value}))} placeholder="Problemas, imprevistos, acidentes..." />
         </div>
-        <div>
-          <label className="text-xs font-medium text-brand-dark flex items-center gap-2">
-            <Image size={14} /> Fotos (máx. 10)
-          </label>
-          <input type="file" accept="image/*" multiple className="mt-1 text-sm" onChange={e => setFotos(Array.from(e.target.files || []).slice(0, 10))} />
-          {fotos.length > 0 && <p className="text-xs text-brand-muted mt-1">{fotos.length} foto(s) selecionada(s)</p>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-medium text-brand-dark flex items-center gap-2">
+              <Image size={14} /> Fotos (máx. 10)
+            </label>
+            <input type="file" accept="image/*" multiple className="mt-1 text-sm bg-brand-bg w-full rounded-xl px-3 py-2 border border-brand-border" onChange={e => setFotos(Array.from(e.target.files || []).slice(0, 10))} />
+            {fotos.length > 0 && <p className="text-xs text-brand-muted mt-1">{fotos.length} foto(s) selecionada(s)</p>}
+          </div>
         </div>
-        <Input label="Responsável" value={form.responsavel} onChange={e => setForm(p=>({...p,responsavel:e.target.value}))} />
         <div className="flex justify-end gap-3 pt-2 border-t border-brand-border">
           <Button variant="secondary" onClick={onClose}>Cancelar</Button>
           <Button loading={saving} onClick={() => form.atividades && onSave(form, fotos)}>Salvar entrada</Button>

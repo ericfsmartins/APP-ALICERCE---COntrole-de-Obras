@@ -11,15 +11,15 @@ export default function Modal({ open, onClose, title, children, size = 'md', cla
 
   if (!open) return null
 
-  const sizes = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-2xl', xl: 'max-w-4xl', full: 'max-w-6xl' }
+  const sizes = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-2xl', xl: 'max-w-5xl', full: 'max-w-7xl' }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="flex min-h-full items-start justify-center p-3 py-6 sm:p-6 sm:py-10">
+      <div className="flex min-h-full items-start justify-center p-3 sm:p-4">
         <div className={cn(
-          "relative bg-white rounded-2xl shadow-2xl w-full flex flex-col animate-fadeIn",
-          "max-h-[90vh]",
+          "relative bg-white rounded-[14px] shadow-2xl w-full flex flex-col animate-fadeIn mt-4 sm:mt-8",
+          "max-h-[95vh]",
           sizes[size], className
         )} onClick={e => e.stopPropagation()}>
           <div className="gradient-bar flex-shrink-0" />

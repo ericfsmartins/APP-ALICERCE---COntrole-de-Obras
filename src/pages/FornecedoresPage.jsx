@@ -231,36 +231,39 @@ export default function FornecedoresPage() {
         </div>
       )}
 
-      {/* Modal */}
       <Modal
         open={modal}
         onClose={() => { setModal(false); setEditando(null) }}
         title={editando ? 'Editar Fornecedor' : 'Novo Fornecedor'}
+        size="xl"
       >
-        <div className="space-y-4">
-          <Input
-            label="Nome *"
-            value={form.nome}
-            onChange={e => setForm(p => ({ ...p, nome: e.target.value }))}
-            placeholder="Razão social ou nome"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+        <div className="space-y-4 p-6">
+          {/* Row 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-6">
+              <Input
+                label="Nome ou Razão Social *"
+                value={form.nome}
+                onChange={e => setForm(p => ({ ...p, nome: e.target.value }))}
+                placeholder="Ex: Construtora ABC"
+              />
+            </div>
+            <div className="md:col-span-3">
               <label className="block text-xs font-medium text-brand-muted mb-1">Tipo</label>
               <select
                 value={form.tipo}
                 onChange={e => setForm(p => ({ ...p, tipo: e.target.value }))}
-                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
               >
                 {TIPOS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
-            <div>
+            <div className="md:col-span-3">
               <label className="block text-xs font-medium text-brand-muted mb-1">Status</label>
               <select
                 value={form.status}
                 onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
-                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
               >
                 <option value="ativo">Ativo</option>
                 <option value="inativo">Inativo</option>
@@ -268,68 +271,92 @@ export default function FornecedoresPage() {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="CNPJ / CPF"
-              value={form.cnpj_cpf}
-              onChange={e => setForm(p => ({ ...p, cnpj_cpf: e.target.value }))}
-              placeholder="00.000.000/0001-00"
-            />
-            <Input
-              label="Contato"
-              value={form.contato_nome}
-              onChange={e => setForm(p => ({ ...p, contato_nome: e.target.value }))}
-              placeholder="Nome do responsável"
-            />
+
+          {/* Row 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-3">
+              <Input
+                label="CNPJ / CPF"
+                value={form.cnpj_cpf}
+                onChange={e => setForm(p => ({ ...p, cnpj_cpf: e.target.value }))}
+                placeholder="00.000.000/0001-00"
+              />
+            </div>
+            <div className="md:col-span-3">
+              <Input
+                label="Contato (Nome)"
+                value={form.contato_nome}
+                onChange={e => setForm(p => ({ ...p, contato_nome: e.target.value }))}
+                placeholder="Nome do responsável"
+              />
+            </div>
+            <div className="md:col-span-3">
+              <Input
+                label="Telefone"
+                value={form.telefone}
+                onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))}
+                placeholder="(11) 99999-9999"
+              />
+            </div>
+            <div className="md:col-span-3">
+              <Input
+                label="E-mail"
+                type="email"
+                value={form.email}
+                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                placeholder="email@empresa.com"
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Telefone"
-              value={form.telefone}
-              onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))}
-              placeholder="(11) 99999-9999"
-            />
-            <Input
-              label="E-mail"
-              type="email"
-              value={form.email}
-              onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-              placeholder="email@empresa.com"
-            />
+
+          {/* Row 3 */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-7">
+              <Input
+                label="Endereço"
+                value={form.endereco}
+                onChange={e => setForm(p => ({ ...p, endereco: e.target.value }))}
+                placeholder="Rua, número, cidade"
+              />
+            </div>
+            <div className="md:col-span-5">
+              <Input
+                label="Especialidades (separadas por vírgula)"
+                value={form.especialidades}
+                onChange={e => setForm(p => ({ ...p, especialidades: e.target.value }))}
+                placeholder="Ex: fundações, esquadrias"
+              />
+            </div>
           </div>
-          <Input
-            label="Endereço"
-            value={form.endereco}
-            onChange={e => setForm(p => ({ ...p, endereco: e.target.value }))}
-            placeholder="Rua, número, cidade"
-          />
-          <Input
-            label="Especialidades (separadas por vírgula)"
-            value={form.especialidades}
-            onChange={e => setForm(p => ({ ...p, especialidades: e.target.value }))}
-            placeholder="concreto, estruturas metálicas, fundações"
-          />
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-2">Avaliação</label>
-            <StarRating
-              value={form.avaliacao}
-              onChange={v => setForm(p => ({ ...p, avaliacao: v }))}
-            />
+
+          {/* Row 4 */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 border-t border-brand-border pt-4">
+            <div className="md:col-span-3">
+              <label className="block text-xs font-medium text-brand-muted mb-2">Avaliação Interna</label>
+              <div className="bg-brand-bg/50 inline-flex px-3 py-2 border border-brand-border rounded-lg">
+                <StarRating
+                  value={form.avaliacao}
+                  onChange={v => setForm(p => ({ ...p, avaliacao: v }))}
+                />
+              </div>
+            </div>
+            <div className="md:col-span-9">
+              <label className="block text-xs font-medium text-brand-muted mb-1">Observações Privadas</label>
+              <textarea
+                value={form.observacoes}
+                onChange={e => setForm(p => ({ ...p, observacoes: e.target.value }))}
+                rows={2}
+                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30 resize-none"
+                placeholder="Anotações internas sobre este fornecedor..."
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Observações</label>
-            <textarea
-              value={form.observacoes}
-              onChange={e => setForm(p => ({ ...p, observacoes: e.target.value }))}
-              rows={3}
-              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30 resize-none"
-            />
-          </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => { setModal(false); setEditando(null) }}>Cancelar</Button>
             <Button onClick={salvar} disabled={saving}>
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-              {editando ? 'Salvar' : 'Criar'}
+              {editando ? 'Salvar Alterações' : 'Criar Fornecedor'}
             </Button>
           </div>
         </div>

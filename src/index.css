@@ -27,12 +27,22 @@
   }
 
   .card-base {
-    @apply rounded-xl border border-brand-border bg-white shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden;
+    background: theme('colors.white');
+    border: 1px solid theme('colors.brand.border');
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.02), 0 2px 4px -2px rgb(0 0 0 / 0.02);
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-base:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -4px rgb(0 0 0 / 0.06), 0 8px 16px -6px rgb(0 0 0 / 0.04);
   }
 
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #DDE3EE transparent;
+    scrollbar-color: #E8E4DB transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -45,7 +55,7 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #DDE3EE;
+    background-color: #E8E4DB;
     border-radius: 2px;
   }
 }

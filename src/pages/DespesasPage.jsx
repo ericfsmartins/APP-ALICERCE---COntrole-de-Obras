@@ -297,49 +297,44 @@ function ModalDespesa({ despesa, fases, momentos, insumos, onSave, onClose, savi
   const podeSubmeter = form.descricao.trim() && form.valor
 
   return (
-    <Modal open onClose={onClose} title={despesa ? 'Editar Despesa' : 'Nova Despesa'} size="lg">
-      <div className="p-5 space-y-4">
+    <Modal open onClose={onClose} title={despesa ? 'Editar Despesa' : 'Nova Despesa'} size="xl">
+      <div className="p-6 space-y-4">
 
-        {/* Insumo (opcional) */}
-        <div>
-          <label className="block text-xs font-medium text-brand-muted mb-1">Insumo vinculado (opcional — preenche fase e momento)</label>
-          <select
-            value={form.insumo_id}
-            onChange={handleInsumo}
-            className="w-full text-sm border border-brand-border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
-          >
-            <option value="">— sem vínculo —</option>
-            {insumos.map(i => <option key={i.id} value={i.id}>[{i.categoria || '?'}] {i.nome}</option>)}
-          </select>
-        </div>
-
-        <Input label="Descrição *" value={form.descricao} onChange={e => setForm(p=>({...p,descricao:e.target.value}))} placeholder="Ex: Compra de cimento" />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Valor (R$) *</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted text-sm">R$</span>
-              <input
-                type="text"
-                placeholder="0,00"
-                value={form.valor}
-                onChange={e => setForm(p=>({...p,valor:e.target.value}))}
-                className="h-9 w-full rounded-xl border border-brand-border pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
-              />
-            </div>
+        {/* Row 1: Descrição e Tipo e Valor */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-6">
+            <Input label="Descrição *" value={form.descricao} onChange={e => setForm(p=>({...p,descricao:e.target.value}))} placeholder="Ex: Compra de cimento" />
           </div>
-          <div>
+          <div className="md:col-span-3">
             <label className="block text-xs font-medium text-brand-muted mb-1">Tipo</label>
             <select value={form.tipo} onChange={e => setForm(p=>({...p,tipo:e.target.value}))}
               className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
               {Object.entries(TIPOS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
+          <div className="md:col-span-3">
+            <label className="block text-xs font-medium text-brand-muted mb-1">Valor (R$) *</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted text-sm">R$</span>
+              <input
+                type="text" placeholder="0,00" value={form.valor} onChange={e => setForm(p=>({...p,valor:e.target.value}))}
+                className="h-9 w-full rounded-xl border border-brand-border pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
+        {/* Row 2: Insumo, Fase, Momento */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-5">
+            <label className="block text-xs font-medium text-brand-muted mb-1">Insumo vinculado (auto-preenche fase/momento)</label>
+            <select value={form.insumo_id} onChange={handleInsumo}
+              className="w-full h-9 text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
+              <option value="">— sem vínculo —</option>
+              {insumos.map(i => <option key={i.id} value={i.id}>[{i.categoria || '?'}] {i.nome}</option>)}
+            </select>
+          </div>
+          <div className="md:col-span-4">
             <label className="block text-xs font-medium text-brand-muted mb-1">Fase</label>
             <select value={form.fase_id} onChange={handleFase}
               className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
@@ -347,42 +342,41 @@ function ModalDespesa({ despesa, fases, momentos, insumos, onSave, onClose, savi
               {fases.map(f => <option key={f.id} value={f.id}>{f.numero}. {f.nome.slice(0,30)}</option>)}
             </select>
           </div>
-          <div>
+          <div className="md:col-span-3">
             <label className="block text-xs font-medium text-brand-muted mb-1">Momento</label>
             <select value={form.momento_id} onChange={handleMomento}
               className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
               <option value="">Nenhum</option>
-              {momentos.map(m => <option key={m.id} value={m.id}>M{m.numero} — {m.nome.split('—')[0].trim().slice(0,22)}</option>)}
+              {momentos.map(m => <option key={m.id} value={m.id}>M{m.numero}</option>)}
             </select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input label="Fornecedor" value={form.fornecedor_nome} onChange={e => setForm(p=>({...p,fornecedor_nome:e.target.value}))} placeholder="Nome do fornecedor" />
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Forma de pagamento</label>
+        {/* Row 3: Fornecedor, Forma Pagamento, Vencimento, Status, Data Lanc */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-3">
+            <Input label="Fornecedor" value={form.fornecedor_nome} onChange={e => setForm(p=>({...p,fornecedor_nome:e.target.value}))} placeholder="Nome do fornecedor" />
+          </div>
+          <div className="md:col-span-3">
+            <label className="block text-xs font-medium text-brand-muted mb-1">Pagamento (Meio)</label>
             <select value={form.forma_pagamento} onChange={e => setForm(p=>({...p,forma_pagamento:e.target.value}))}
               className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
               <option value="">Selecione...</option>
-              <option value="pix">PIX</option>
-              <option value="boleto">Boleto</option>
-              <option value="transferencia">Transferência</option>
-              <option value="dinheiro">Dinheiro</option>
-              <option value="cartao">Cartão</option>
+              <option value="pix">PIX</option><option value="boleto">Boleto</option><option value="transferencia">Transferência</option>
+              <option value="dinheiro">Dinheiro</option><option value="cartao">Cartão</option>
             </select>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Input label="Data lançamento" type="date" value={form.data_lancamento} onChange={e => setForm(p=>({...p,data_lancamento:e.target.value}))} />
-          <Input label="Vencimento" type="date" value={form.data_vencimento} onChange={e => setForm(p=>({...p,data_vencimento:e.target.value}))} />
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Status pagamento</label>
+          <div className="md:col-span-2">
+            <Input label="Lançamento" type="date" value={form.data_lancamento} onChange={e => setForm(p=>({...p,data_lancamento:e.target.value}))} />
+          </div>
+          <div className="md:col-span-2">
+            <Input label="Vencimento" type="date" value={form.data_vencimento} onChange={e => setForm(p=>({...p,data_vencimento:e.target.value}))} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-medium text-brand-muted mb-1">Status</label>
             <select value={form.status_pagamento} onChange={e => setForm(p=>({...p,status_pagamento:e.target.value}))}
               className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
-              <option value="pendente">Pendente</option>
-              <option value="pago">Pago</option>
-              <option value="vencido">Vencido</option>
+              <option value="pendente">Pendente</option><option value="pago">Pago</option><option value="vencido">Vencido</option>
             </select>
           </div>
         </div>

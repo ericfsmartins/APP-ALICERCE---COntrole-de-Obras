@@ -46,21 +46,11 @@ export default function InsumosPage() {
 
   async function load() {
     setLoading(true)
-    const [{ data: ins }, { data: fas }, { data: desp }] = await Promise.all([
+    const [{ data: ins }, { data: fas }] = await Promise.all([
       supabase.from('insumos').select('*').eq('obra_id', obraAtiva.id).order('ranking'),
       supabase.from('fases').select('id,nome,numero').eq('obra_id', obraAtiva.id).order('numero'),
-      supabase.from('despesas').select('insumo_id,valor').eq('obra_id', obraAtiva.id).not('insumo_id', 'is', null),
     ])
-    // Agrupa despesas por insumo_id
-    const realizadoMap = {}
-    ;(desp || []).forEach(d => {
-      realizadoMap[d.insumo_id] = (realizadoMap[d.insumo_id] || 0) + Number(d.valor)
-    })
-    const insComRealizado = (ins || []).map(i => ({
-      ...i,
-      valor_realizado: realizadoMap[i.id] || i.valor_realizado || 0,
-    }))
-    setInsumos(insComRealizado)
+    setInsumos(ins || [])
     setFases(fas || [])
     setLoading(false)
   }
@@ -454,53 +444,32 @@ function ModalInsumo({ insumo, fases, onSave, onClose, saving }) {
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
   return (
-    <Modal open onClose={onClose} title={insumo ? 'Editar Insumo' : 'Novo Insumo'}>
-      <div className="p-5 space-y-3">
-        <Input label="Nome *" value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Cimento Portland" />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input label="Categoria" value={form.categoria} onChange={e => set('categoria', e.target.value)} placeholder="Ex: Estrutura" />
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Classe ABC</label>
+    <Modal open onClose={onClose} title={insumo ? 'Editar Insumo' : 'Novo Insumo'} size="xl">
+      <div className="p-6 space-y-4">
+        
+        {/* Row 1: Nome, Categoria, Classe */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-6">
+            <Input label="Nome *" value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Cimento Portland" />
+          </div>
+          <div className="md:col-span-4">
+            <Input label="Categoria" value={form.categoria} onChange={e => set('categoria', e.target.value)} placeholder="Ex: Estrutura" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-medium text-brand-muted mb-1">Classe</label>
             <select value={form.classe} onChange={e => set('classe', e.target.value)}
               className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
-              <option value="A">A — Alta relevância</option>
-              <option value="B">B — Média relevância</option>
-              <option value="C">C — Baixa relevância</option>
+              <option value="A">A</option><option value="B">B</option><option value="C">C</option>
             </select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input label="Valor orçado (R$)" type="text" value={form.valor_orcado} onChange={e => set('valor_orcado', e.target.value)} placeholder="0,00" />
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Valor realizado (R$)</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={form.valor_realizado}
-                onChange={e => set('valor_realizado', e.target.value)}
-                placeholder="0,00"
-                className="h-9 w-full rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
-              />
-            </div>
-            <p className="text-[10px] text-brand-muted mt-0.5">Valor efetivamente gasto neste insumo</p>
+        {/* Row 2: Fornecedor, Fase, Status */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-5">
+            <Input label="Fornecedor" value={form.fornecedor} onChange={e => set('fornecedor', e.target.value)} />
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Input label="Unidade" value={form.unidade} onChange={e => set('unidade', e.target.value)} placeholder="m², kg, un..." />
-          <Input label="Quantidade" type="text" value={form.quantidade} onChange={e => set('quantidade', e.target.value)} />
-          <Input label="Preço unitário" type="text" value={form.preco_unitario} onChange={e => set('preco_unitario', e.target.value)} />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input label="Fornecedor" value={form.fornecedor} onChange={e => set('fornecedor', e.target.value)} />
-          <Input label="Peso % no orçamento" type="text" value={form.peso_percentual} onChange={e => set('peso_percentual', e.target.value)} placeholder="Ex: 12.38" />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
+          <div className="md:col-span-4">
             <label className="block text-xs font-medium text-brand-muted mb-1">Fase vinculada</label>
             <select value={form.fase_id} onChange={e => set('fase_id', e.target.value)}
               className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
@@ -508,13 +477,41 @@ function ModalInsumo({ insumo, fases, onSave, onClose, saving }) {
               {fases.map(f => <option key={f.id} value={f.id}>{f.numero}. {f.nome.slice(0,30)}</option>)}
             </select>
           </div>
-          <div>
+          <div className="md:col-span-3">
             <label className="block text-xs font-medium text-brand-muted mb-1">Status</label>
             <select value={form.status} onChange={e => set('status', e.target.value)}
               className="h-9 w-full text-sm border border-brand-border rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-brand-accent/30">
               {STATUS_INSUMO.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
             </select>
           </div>
+        </div>
+
+        {/* Row 3: Valores, Medidas */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-3">
+            <Input label="Valor orçado (R$)" type="text" value={form.valor_orcado} onChange={e => set('valor_orcado', e.target.value)} placeholder="0,00" />
+          </div>
+          <div className="md:col-span-3">
+            <label className="block text-xs font-medium text-brand-muted mb-1">Valor realizado (R$)</label>
+            <input type="text" value={form.valor_realizado} onChange={e => set('valor_realizado', e.target.value)} placeholder="0,00"
+              className="h-9 w-full rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/30" />
+          </div>
+          <div className="md:col-span-2">
+            <Input label="Unidade" value={form.unidade} onChange={e => set('unidade', e.target.value)} placeholder="m², kg..." />
+          </div>
+          <div className="md:col-span-2">
+            <Input label="Quant." type="text" value={form.quantidade} onChange={e => set('quantidade', e.target.value)} />
+          </div>
+          <div className="md:col-span-2">
+            <Input label="Unit. R$" type="text" value={form.preco_unitario} onChange={e => set('preco_unitario', e.target.value)} />
+          </div>
+        </div>
+
+        {/* Row 4: Complementos */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 border-t border-brand-border pt-3">
+           <div className="md:col-span-3">
+             <Input label="Peso % no mat." type="text" value={form.peso_percentual} onChange={e => set('peso_percentual', e.target.value)} placeholder="Ex: 5.5" />
+           </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-3 border-t border-brand-border">

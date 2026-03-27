@@ -200,84 +200,101 @@ export default function OrcamentosPage() {
         open={modal}
         onClose={() => { setModal(false); setEditando(null) }}
         title={editando ? 'Editar Orçamento' : 'Novo Orçamento'}
+        size="xl"
       >
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-          <Input
-            label="Título *"
-            value={form.titulo}
-            onChange={e => setForm(p => ({ ...p, titulo: e.target.value }))}
-            placeholder="Ex: Orçamento de esquadrias — alumínio"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+        <div className="space-y-4 p-6 max-h-[85vh] overflow-y-auto pr-2 scrollbar-thin">
+          {/* Row 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-6">
+              <Input
+                label="Título / Assunto *"
+                value={form.titulo}
+                onChange={e => setForm(p => ({ ...p, titulo: e.target.value }))}
+                placeholder="Ex: Orçamento de esquadrias — alumínio"
+              />
+            </div>
+            <div className="md:col-span-3">
               <label className="block text-xs font-medium text-brand-muted mb-1">Fornecedor</label>
               <select
                 value={form.fornecedor_id}
                 onChange={e => setForm(p => ({ ...p, fornecedor_id: e.target.value }))}
-                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
               >
-                <option value="">— selecionar —</option>
-                {fornecedores.map(f => <option key={f.id} value={f.id}>{f.nome}</option>)}
+                <option value="">— Selecione —</option>
+                {fornecedores.map(f => <option key={f.id} value={f.id}>{f.nome.slice(0,30)}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-brand-muted mb-1">Fase</label>
+            <div className="md:col-span-3">
+              <label className="block text-xs font-medium text-brand-muted mb-1">Fase da Obra</label>
               <select
                 value={form.fase_id}
                 onChange={e => setForm(p => ({ ...p, fase_id: e.target.value }))}
-                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
               >
-                <option value="">— sem fase —</option>
-                {fases.map(f => <option key={f.id} value={f.id}>{f.numero}. {f.nome}</option>)}
+                <option value="">— Nenhuma —</option>
+                {fases.map(f => <option key={f.id} value={f.id}>{f.numero}. {f.nome.slice(0,20)}</option>)}
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+
+          {/* Row 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Input label="Emissão" type="date" value={form.data_emissao} onChange={e => setForm(p => ({ ...p, data_emissao: e.target.value }))} />
             <Input label="Validade" type="date" value={form.data_validade} onChange={e => setForm(p => ({ ...p, data_validade: e.target.value }))} />
             <Input label="Entrega prevista" type="date" value={form.data_entrega} onChange={e => setForm(p => ({ ...p, data_entrega: e.target.value }))} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Status</label>
-            <select
-              value={form.status}
-              onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
-              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
-            >
-              {STATUS_COLUNAS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
+            <div>
+              <label className="block text-xs font-medium text-brand-muted mb-1">Status Interno</label>
+              <select
+                value={form.status}
+                onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
+                className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30"
+              >
+                {STATUS_COLUNAS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
           </div>
 
           {/* Itens */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-brand-muted">Itens do orçamento</label>
+          <div className="mt-6 border border-brand-border rounded-xl p-4 bg-brand-bg/30">
+            <div className="flex items-center justify-between mb-3 border-b border-brand-border pb-2">
+              <label className="text-sm font-bold text-brand-dark flex items-center gap-2">
+                Itens do orçamento
+              </label>
               <button
                 onClick={() => setItens(p => [...p, { ...ITEM_INICIAL }])}
-                className="text-xs text-brand-accent hover:underline"
-              >+ Adicionar item</button>
+                className="text-xs text-brand-accent hover:underline flex items-center gap-1 font-medium"
+              ><Plus size={14}/> Adicionar item</button>
             </div>
+            
             <div className="space-y-2">
+              <div className="hidden md:grid grid-cols-12 gap-2 px-1 text-[10px] font-bold text-brand-muted uppercase tracking-wider">
+                <div className="col-span-5">Descrição do Item</div>
+                <div className="col-span-2 text-center">Quant.</div>
+                <div className="col-span-1 text-center">Un.</div>
+                <div className="col-span-2 text-right">Preço Unit. (R$)</div>
+                <div className="col-span-1 text-right">Total</div>
+              </div>
+
               {itens.map((item, idx) => (
-                <div key={idx} className="grid grid-cols-12 gap-1.5 items-start">
+                <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center bg-white border border-brand-border rounded-lg p-2 md:p-1">
                   <input
                     value={item.descricao}
                     onChange={e => atualizarItem(idx, 'descricao', e.target.value)}
-                    placeholder="Descrição"
-                    className="col-span-4 text-xs border border-brand-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-accent/30"
+                    placeholder="Descrição do material/serviço..."
+                    className="col-span-1 md:col-span-5 text-sm md:text-xs border border-transparent hover:border-brand-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-accent/30 focus:border-brand-accent/30"
                   />
                   <input
                     value={item.quantidade}
                     type="number"
                     onChange={e => atualizarItem(idx, 'quantidade', e.target.value)}
                     placeholder="Qtd"
-                    className="col-span-2 text-xs border border-brand-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-accent/30"
+                    className="col-span-1 md:col-span-2 text-sm md:text-xs text-center border border-transparent hover:border-brand-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-accent/30"
                   />
                   <input
                     value={item.unidade}
                     onChange={e => atualizarItem(idx, 'unidade', e.target.value)}
-                    placeholder="un"
-                    className="col-span-1 text-xs border border-brand-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-accent/30"
+                    placeholder="UN"
+                    className="col-span-1 md:col-span-1 text-sm md:text-xs text-center border border-transparent hover:border-brand-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-accent/30"
                   />
                   <input
                     value={item.valorUnit}
@@ -285,41 +302,47 @@ export default function OrcamentosPage() {
                     step="0.01"
                     onChange={e => atualizarItem(idx, 'valorUnit', e.target.value)}
                     placeholder="Valor unit."
-                    className="col-span-2 text-xs border border-brand-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-accent/30"
+                    className="col-span-1 md:col-span-2 text-sm md:text-xs text-right border border-transparent hover:border-brand-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-accent/30"
                   />
-                  <div className="col-span-2 text-xs font-medium text-brand-accent px-2 py-1.5">
+                  <div className="col-span-1 md:col-span-1 text-xs font-bold text-brand-accent px-2 text-right truncate">
                     {formatCurrency(item.valorTotal)}
                   </div>
                   <button
                     onClick={() => setItens(p => p.filter((_, i) => i !== idx))}
-                    className="col-span-1 text-brand-muted hover:text-status-red p-1"
+                    className="col-span-1 md:col-span-1 flex items-center justify-center text-brand-muted hover:text-status-red hover:bg-red-50 p-1.5 rounded-lg transition-colors"
                   >
-                    <X size={13} />
+                    <X size={14} />
                   </button>
                 </div>
               ))}
             </div>
+
             {itens.length > 0 && (
-              <div className="flex justify-end mt-2 text-sm font-bold text-brand-dark">
-                Total: {formatCurrency(totalItens)}
+              <div className="flex justify-end mt-4 pt-3 border-t border-brand-border text-sm">
+                <div className="bg-brand-dark text-white px-4 py-2 rounded-xl font-bold flex gap-3 items-center shadow-lg">
+                  <span className="text-white/60 font-medium text-xs">VALOR TOTAL:</span> 
+                  <span className="text-lg text-emerald-400">{formatCurrency(totalItens)}</span>
+                </div>
               </div>
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-brand-muted mb-1">Observações</label>
+          <div className="pt-2">
+            <label className="block text-xs font-medium text-brand-muted mb-1">Anotações e Observações</label>
             <textarea
               value={form.observacoes}
               onChange={e => setForm(p => ({ ...p, observacoes: e.target.value }))}
               rows={2}
-              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/30 resize-none"
+              className="w-full text-sm border border-brand-border rounded-lg px-3 py-2 bg-brand-bg/50 focus:outline-none focus:ring-2 focus:ring-brand-accent/30 resize-none"
+              placeholder="Condições de pagamento, frete incluso, etc..."
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2">
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-brand-border mt-2">
             <Button variant="outline" onClick={() => { setModal(false); setEditando(null) }}>Cancelar</Button>
             <Button onClick={salvar} disabled={saving}>
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-              {editando ? 'Salvar' : 'Criar'}
+              {editando ? 'Salvar Edições' : 'Criar Orçamento'}
             </Button>
           </div>
         </div>
