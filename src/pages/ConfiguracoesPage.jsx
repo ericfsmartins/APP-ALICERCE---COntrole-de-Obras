@@ -27,7 +27,7 @@ const ABAS = [
 ]
 
 export default function ConfiguracoesPage() {
-  const { obraAtiva, atualizarObra } = useObra()
+  const { obraAtiva, atualizarObra, refreshObraAtiva } = useObra()
   const { profile, isAdmin, updateProfile } = useAuth()
   const [aba, setAba]         = useState('obra')
   const [saving, setSaving]   = useState(false)
@@ -92,11 +92,21 @@ export default function ConfiguracoesPage() {
       percentual_mao_obra:  parseFloat(form.percentual_mao_obra)  || 29.09,
       percentual_materiais: parseFloat(form.percentual_materiais) || 70.91,
     }
-    const { error } = await atualizarObra(obraAtiva.id, payload)
+
+    const { data, error } = await supabase
+      .from('obras')
+      .update(payload)
+      .eq('id', obraAtiva.id)
+      .select()
+      .single()
+
     setSaving(false)
     if (error) {
-      setErroSave('Erro ao salvar: ' + error.message)
+      setErroSave(`Erro [${error.code}]: ${error.message}`)
+    } else if (!data) {
+      setErroSave('Erro: nenhuma linha foi atualizada. Verifique permissões.')
     } else {
+      await refreshObraAtiva()
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
     }
