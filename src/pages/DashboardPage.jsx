@@ -13,10 +13,10 @@ import {
 import { formatCurrency, formatDate, formatPercent, calcDesvio, calcDiasRestantes, getStatusColor, getStatusLabel, cn } from '@/lib/utils'
 
 /* ─── Paleta ─────────────────────────────────────────────── */
-const ACCENT  = '#C87941'
-const DARK    = '#1C1F26'
-const MUTED   = '#9aa3b5'
-const BORDER  = '#e8e4db'
+const ACCENT  = '#D4A84B'
+const DARK    = '#0F2044'
+const MUTED   = '#7A8BA6'
+const BORDER  = '#DDE3EE'
 const BLUE    = '#3b82f6'
 const GREEN   = '#22c55e'
 const AMBER   = '#f59e0b'

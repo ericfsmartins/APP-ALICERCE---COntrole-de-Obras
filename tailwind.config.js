@@ -9,11 +9,11 @@ export default {
     extend: {
       colors: {
         brand: {
-          dark:   '#1C1F26',
-          accent: '#C87941',
-          border: '#e8e4db',
-          muted:  '#9aa3b5',
-          bg:     '#f8f6f1',
+          dark:   '#0F2044',
+          accent: '#D4A84B',
+          border: '#DDE3EE',
+          muted:  '#7A8BA6',
+          bg:     '#F4F7FB',
         },
         status: {
           green:  '#22C55E',

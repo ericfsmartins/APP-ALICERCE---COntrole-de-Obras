@@ -14,23 +14,25 @@ export default function Modal({ open, onClose, title, children, size = 'md', cla
   const sizes = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-2xl', xl: 'max-w-4xl', full: 'max-w-6xl' }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={cn(
-        "relative bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-fadeIn",
-        sizes[size], className
-      )}>
-        <div className="gradient-bar" />
-        {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-brand-border flex-shrink-0">
-            <h2 className="font-display font-bold text-lg text-brand-dark">{title}</h2>
-            <button onClick={onClose} className="p-1 rounded-lg hover:bg-brand-bg text-brand-muted">
-              <X size={18} />
-            </button>
+      <div className="flex min-h-full items-start justify-center p-4 py-8">
+        <div className={cn(
+          "relative bg-white rounded-2xl shadow-2xl w-full flex flex-col overflow-hidden animate-fadeIn",
+          sizes[size], className
+        )} onClick={e => e.stopPropagation()}>
+          <div className="gradient-bar" />
+          {title && (
+            <div className="flex items-center justify-between px-6 py-4 border-b border-brand-border flex-shrink-0">
+              <h2 className="font-display font-bold text-lg text-brand-dark">{title}</h2>
+              <button onClick={onClose} className="p-1 rounded-lg hover:bg-brand-bg text-brand-muted">
+                <X size={18} />
+              </button>
+            </div>
+          )}
+          <div className="overflow-y-auto scrollbar-thin">
+            {children}
           </div>
-        )}
-        <div className="flex-1 overflow-y-auto scrollbar-thin">
-          {children}
         </div>
       </div>
     </div>

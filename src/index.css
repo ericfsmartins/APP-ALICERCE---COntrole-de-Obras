@@ -22,7 +22,8 @@
 
 @layer utilities {
   .gradient-bar {
-    @apply h-1 w-full rounded-t-xl bg-gradient-to-r from-brand-dark to-brand-accent;
+    @apply h-1 w-full rounded-t-xl;
+    background: linear-gradient(90deg, #0F2044 0%, #1a3d7a 40%, #D4A84B 100%);
   }
 
   .card-base {
@@ -31,7 +32,7 @@
 
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #e8e4db transparent;
+    scrollbar-color: #DDE3EE transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -44,7 +45,7 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #e8e4db;
+    background-color: #DDE3EE;
     border-radius: 2px;
   }
 }
