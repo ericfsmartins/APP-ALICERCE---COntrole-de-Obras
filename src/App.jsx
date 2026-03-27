@@ -19,6 +19,7 @@ import FornecedoresPage from '@/pages/FornecedoresPage'
 import OrcamentosPage   from '@/pages/OrcamentosPage'
 import RelatoriosPage   from '@/pages/RelatoriosPage'
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage'
+import FinanceiroPage    from '@/pages/FinanceiroPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -47,6 +48,7 @@ function AppRoutes() {
         <Route path="fases"         element={<FasesPage />} />
         <Route path="insumos"       element={<InsumosPage />} />
         <Route path="despesas"      element={<DespesasPage />} />
+        <Route path="financeiro"    element={<FinanceiroPage />} />
         <Route path="lancamento"    element={<LancamentoPage />} />
         <Route path="diario"        element={<DiarioPage />} />
         <Route path="documentos"    element={<DocumentosPage />} />

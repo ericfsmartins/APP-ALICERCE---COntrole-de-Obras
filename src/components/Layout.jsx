@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Layers, Package, Receipt, Zap, BookOpen,
   FileText, Store, BarChart3, TrendingUp, Settings, Building2,
-  Bell, ChevronDown, LogOut, User, Menu, X, Target
+  Bell, ChevronDown, LogOut, User, Menu, X, Target, Wallet
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useObra } from '@/contexts/ObraContext'
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { to: '/fases',         icon: Layers,          label: 'Fases'         },
   { to: '/insumos',       icon: Package,         label: 'Insumos'       },
   { to: '/despesas',      icon: Receipt,         label: 'Despesas'      },
+  { to: '/financeiro',    icon: Wallet,          label: 'Financeiro'    },
   { to: '/lancamento',    icon: Zap,             label: 'Lançamento'    },
   { to: '/diario',        icon: BookOpen,        label: 'Diário'        },
   { to: '/documentos',    icon: FileText,        label: 'Documentos'    },

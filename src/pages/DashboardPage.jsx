@@ -4,8 +4,10 @@ import { supabase } from '@/lib/supabase'
 import {
   DollarSign, TrendingUp, Layers, Clock,
   AlertTriangle, CheckCircle2, ArrowRight,
-  Loader2, Building2, BarChart3, Zap
+  Loader2, Building2, BarChart3, Zap,
+  Wallet, Calendar, Receipt
 } from 'lucide-react'
+import TimelineObra from '@/components/TimelineObra'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -134,12 +136,16 @@ export default function DashboardPage() {
         { data: momentos },
         { data: insumos },
         { data: ultimasDespesas },
+        { data: contaRaw },
+        { data: parcelasRaw },
       ] = await Promise.all([
         supabase.from('fases').select('*').eq('obra_id', obraAtiva.id).order('numero'),
         supabase.from('despesas').select('*').eq('obra_id', obraAtiva.id).order('data_lancamento', { ascending: false }),
         supabase.from('momentos').select('*').eq('obra_id', obraAtiva.id).order('numero'),
         supabase.from('insumos').select('*').eq('obra_id', obraAtiva.id).order('ranking'),
         supabase.from('despesas').select('*').eq('obra_id', obraAtiva.id).order('created_at', { ascending: false }).limit(6),
+        supabase.from('conta_obra').select('*').eq('obra_id', obraAtiva.id).single(),
+        supabase.from('parcelas_financiamento').select('*').eq('obra_id', obraAtiva.id).eq('status', 'aguardando').order('data_prevista').limit(1),
       ])
 
       const totalGasto   = (despesas || []).reduce((s, d) => s + Number(d.valor || 0), 0)
@@ -220,6 +226,15 @@ export default function DashboardPage() {
 
       const curvaS = gerarCurvaS(despesas || [], obraAtiva)
 
+      // Conta financeira
+      const saldoDisponivel = contaRaw?.saldo_atual ?? null
+      const proximaParcela  = parcelasRaw?.[0] ?? null
+
+      // Comprometido: despesas pendentes
+      const totalComprometido = (despesas || [])
+        .filter(d => d.status_pagamento === 'pendente')
+        .reduce((s, d) => s + Number(d.valor || 0), 0)
+
       setData({
         totalGasto, totalOrcado, totalEstFase, totalInsumos,
         pctGasto, pctFisico, fasesPorStatus,
@@ -229,6 +244,9 @@ export default function DashboardPage() {
         curvaS, alertas, diasRestantes,
         totalFases: (fases || []).length,
         momentos: momentos || [],
+        fases: fases || [],
+        saldoDisponivel, proximaParcela, totalComprometido,
+        limiteAlerta: contaRaw?.limite_alerta ?? 10000,
       })
     } finally {
       setLoading(false)
@@ -337,6 +355,53 @@ export default function DashboardPage() {
           badgeColor={prazoBadge?.color}
         />
       </div>
+
+      {/* ── KPIs Financeiros ────────────────────── */}
+      {data.saldoDisponivel !== null && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {(() => {
+            const orcado = data.totalOrcado || 1
+            const saldo  = data.saldoDisponivel
+            const saldoColor = saldo > orcado * 0.2 ? GREEN : saldo > orcado * 0.05 ? AMBER : RED
+            const proxP  = data.proximaParcela
+            const dias   = proxP ? Math.ceil((new Date(proxP.data_prevista + 'T12:00:00') - new Date()) / 86400000) : null
+            const comprometido = data.totalComprometido
+            const compColor = comprometido > saldo ? RED : comprometido > saldo * 0.7 ? AMBER : GREEN
+            return (<>
+              <KpiCard
+                title="Saldo Disponível"
+                value={formatCurrency(saldo)}
+                sub="Conta da obra"
+                icon={Wallet}
+                accent={saldoColor}
+                badge={saldo < data.limiteAlerta ? '⚠ Saldo baixo' : null}
+                badgeColor="bg-red-50 text-red-600"
+              />
+              <KpiCard
+                title="Próxima Parcela"
+                value={proxP ? formatCurrency(proxP.valor) : '—'}
+                sub={proxP && dias !== null ? `em ${dias} dias` : 'Nenhuma programada'}
+                icon={Calendar}
+                accent={dias !== null && dias <= 7 ? AMBER : BLUE}
+                badge={dias !== null && dias <= 7 ? `Vence em ${dias}d` : null}
+                badgeColor="bg-amber-50 text-amber-700"
+              />
+              <KpiCard
+                title="Total Comprometido"
+                value={formatCurrency(comprometido)}
+                sub="Despesas pendentes"
+                icon={Receipt}
+                accent={compColor}
+                badge={comprometido > saldo ? 'Acima do saldo' : null}
+                badgeColor="bg-red-50 text-red-600"
+              />
+            </>)
+          })()}
+        </div>
+      )}
+
+      {/* ── Timeline da Obra ────────────────────── */}
+      <TimelineObra fases={data.fases} config={obraAtiva} />
 
       {/* ── Conciliação Orçamentária ──────────── */}
       <div className="card-base p-5">
